@@ -1,0 +1,31 @@
+@startuml
+!include <C4/C4_Component>
+!include <C4/C4_Container>
+
+title C4 Диаграмма компонентов сервиса передачи запросов и команд на устройства TO BE
+
+System_Boundary(comandsControl, "comand Control", "Any", "Сервис управления освещением"){
+  Component(comandEntity, "comandEntity", "Сущность Команда/запрос")
+  Component(comandController, "comandController", "Контроллер получения и отправки команд и запросов на устройства")
+  Component(eventPublication, "eventPublication", "Компонент публикации ответов за запросы и команды")
+  Component(eventReading, "eventReading", "Компонент подписки в Kafka на топик получения запросов и команд от других микросервисов")
+  Component(dbController, "dbController", "Слой взаимодействия с БД")
+  ComponentDb(dbcomandControl, "База данных", "PostgreSQL", "Хранит данные о конкретной команде или запросе на устройство")
+
+  Rel(comandController, comandEntity, "Получение и обновление информации о команде или запросе")
+
+  Rel(comandEntity, dbController, "Получение и обновление информации о команде или запросе в БД")  
+  Rel(dbController, dbcomandControl, "Получение и изменение данных в БД")
+
+  Rel(comandController, eventPublication, "Вызов публикации ответов")
+  Rel(eventReading, comandController, "Получение запросов и команды с шины")
+}
+
+  System(gtwDevice, "API Gateway for Devices", "Жлюз/адаптер для взаимодействия с устройствами")
+  SystemQueue(eventBus, "Kafka", "Шина данных")
+  Rel(eventPublication, eventBus, "Публикция ответов от устройств")
+  Rel(eventBus, eventReading, "Чтение команд и запросов на устройства")
+  Rel(comandController, gtwDevice, "Отправка запросов и получение ответов с устройств")
+
+
+@enduml

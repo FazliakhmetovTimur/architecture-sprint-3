@@ -1,0 +1,47 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Sequence.puml
+
+title C4 Диаграмма последовательности управления воротами TO BE
+
+Container(gtwUser, "API Gateway", "Kong", "Gateway для взаимодействия с фронтенд приложениями")
+
+Container_Boundary(gateControl, "Сервис управления воротами")
+    Component(gateController, "gateController", "Контроллер получения состояния ворот (открыто/закрыто)") 
+    Component(eventPublication, "eventPublication", "Компонент публикации запросов на получение и обновление данных")
+    Component(eventReading, "eventReading", "Компонент подписки в Kafka на топик получения данных")       
+    Component(gateEntity, "gateEntity", "Сущность Световой прибор")
+    Component(dbController, "dbController", "Слой взаимодействия с БД")
+    ComponentDb(dbgateControl, "База данных", "PostgreSQL", "Хранит данные о состоянии ворот")
+Boundary_End()
+
+SystemQueue(eventBus, "Kafka", "Kafka", "Шина данных")
+Container(comandsControl, "Comands Control", "Any", "Сервис отправляет запросы/команды на устройства и ожидает подверждения их применения от устройства. Не имеет API. Взаимодействует только через Kafka.")
+Container(gtwDevice, "API Gateway for Devices", "Any", "Жлюз/адаптер для взаимодействия с устройствами")
+
+
+System_Ext(device, "Устройство")
+
+Rel(gtwUser, gateController, "Открыть/закрыть ворота", "GRPS")
+Rel(gateController, eventPublication, "Опубликовать команду в Kafka открыть/закрыть ворота")
+Rel(eventPublication, eventBus, "Опубликовать команду в Kafka")
+
+Rel(eventBus, comandsControl, "Получить команду из Kafka")
+Rel(comandsControl, gtwDevice, "Отправить команду на устройство управления воротами", "GRPS")
+Rel(gtwDevice, device, "Отправить команду на устройство управления воротами", "HTTPS Request")
+
+Rel(device, gtwDevice, "Вернуть результат выполнения команды", "HTTPS Response")
+Rel(gtwDevice, comandsControl, "Вернуть результат выполнения команды", "GRPS")
+Rel(comandsControl, eventBus, "Опубликовать событие с новым статусом устройства")
+
+Rel(eventBus, eventReading, "Получить событие с новым статусом устройства")
+Rel(eventReading, gateController, "Обновить статус устройства и результат выполнения последней команды")
+Rel(gateController, gateEntity, "Обновить статус устройства и результат выполнения последней команды")
+Rel(gateEntity, dbController, "Обновить статус устройства и результат выполнения последней команды в БД")
+Rel(dbController, dbgateControl, "Обновить статус устройства и результат выполнения последней команды в БД")
+
+Rel(gtwUser, gateController, "Получить новый статус устройства", "GRPS")
+Rel(gateController, gateEntity, "Получить новый статус устройства")
+Rel(gateEntity, dbController, "Получить новый статус устройства из БД")
+Rel(dbController, dbgateControl, "Получить новый статус устройства из БД")
+
+@enduml

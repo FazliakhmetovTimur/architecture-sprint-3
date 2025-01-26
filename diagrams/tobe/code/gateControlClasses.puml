@@ -1,0 +1,58 @@
+@startuml
+
+title C4 Диаграмма классов сервиса управления воротами TO BE
+
+package "Entity" {
+    class GateEntity {
+        +turnOn()
+        +turnOff()
+        +isTurnOn()
+    }
+    class Event {
+        +getEvent()
+    }
+}
+
+package "Controller" {
+    class GateController {
+        +turnOn()
+        +turnOff()
+        +isTurnOn()
+    }
+}
+
+package "DBInteraction" {
+    class DBDriver {
+        +execureQuery()
+        +updateField()
+    }
+}
+
+package "EventBusInteraction" {
+    class EventPublisher {
+        +publicEvent(Event)
+    }
+    class EventListener {
+        +eventCallback(Event)
+    }
+}
+
+package "Service" {
+    class GateControlService {
+        +turnOn(DeviceId)
+        +turnOff(DeviceId)
+        +isTurnOn(DeviceId)
+    }
+}
+
+GateControlService --> GateController : "Открыть/закрыть ворота"
+GateController --> EventPublisher : "Опубликовать команду в Kafka открыть/закрыть ворота"
+EventListener --> GateController : "Обработать результат выполнения команды устройством"
+GateController --> GateEntity : "Обновить статус открытие ворот в объекте"
+GateEntity --> DBDriver : "Обновить статус открытие ворот в БД"
+
+GateControlService --> GateController : "Получить статуса открытие ворот в сервисе"
+GateController --> GateEntity : "Получить статус открытие ворот в объекте"
+GateEntity --> DBDriver : "Получить статуса открытие ворот в БД"
+
+@enduml

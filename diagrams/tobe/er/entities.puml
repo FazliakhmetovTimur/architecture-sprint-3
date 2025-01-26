@@ -1,0 +1,92 @@
+@startuml
+
+entity User {
+    *id : INTEGER
+    --
+    name : STRING
+    email : STRING
+    phone : STRING
+    login : STRING
+    hash_password : STRING
+}
+
+
+entity Device {
+    *id : INTEGER
+    --
+    type_id : INTEGER
+    serial_number : STRING
+    name : STRING
+    description : STRING
+    status : STRING
+}
+
+entity DeviceType {
+    *id : INTEGER
+    --
+    name : STRING
+}
+
+entity heatingSensor {
+    *device_id : INTEGER
+    --
+    temperature : INTEGER
+    lastUpdateTime: DATETIME
+}
+
+entity heatingDevice {
+    *device_id : INTEGER
+    --
+    currentSetTemperature : INTEGER    
+    currentGetTemperature : INTEGER
+    lastUpdateTime: DATETIME    
+}
+
+entity lightDevice {
+    *device_id : INTEGER
+    --
+    status : BOOLEAN
+    lastUpdateTime: DATETIME
+}
+
+entity gateDevice {
+    *device_id : INTEGER
+    --
+    status : BOOLEAN
+    lastUpdateTime: DATETIME
+}
+
+entity camDevice {
+    *device_id : INTEGER
+    --
+    mode : STRING
+}
+
+entity camDeviceSreenShots {
+    *id : INTEGER
+    --
+    device_id : INTEGER
+    screenshort: BLOB
+    timestamp: DATETIME
+}
+
+entity comand {
+    *id : INTEGER
+    --
+    device_id : INTEGER
+    request: STRING
+    responce: STRING
+    status: STRING
+    timestamp: DATETIME
+}
+
+User ||--o{ Device : "владеет"
+DeviceType ||--|{ Device : "определяет тип"
+heatingSensor <|-- Device : "тип устройства"
+heatingDevice <|-- Device : "тип устройства"
+lightDevice <|-- Device : "тип устройства"
+gateDevice <|-- Device : "тип устройства"
+camDevice <|-- Device : "тип устройства"
+camDevice o-- camDeviceSreenShots : "содержит скриншоты"
+
+@enduml

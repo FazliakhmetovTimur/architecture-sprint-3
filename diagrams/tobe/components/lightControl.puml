@@ -1,0 +1,28 @@
+@startuml
+!include <C4/C4_Component>
+!include <C4/C4_Container>
+
+title C4 Диаграмма компонентов сервиса управления освещением TO BE
+
+System_Boundary(lightControl, "Light Control", "Any", "Сервис управления освещением"){
+  Component(lightEntity, "lightEntity", "Сущность Световой прибор")
+  Component(lightController, "lightController", "Контроллер получения состояния светового прибора (вкд/выкл)")
+  Component(eventPublication, "eventPublication", "Компонент публикации запросов на получение и обновление данных")
+  Component(eventReading, "eventReading", "Компонент подписки в Kafka на топик получения данных")
+  Component(dbController, "dbController", "Слой взаимодействия с БД")
+  ComponentDb(dbLightControl, "База данных", "PostgreSQL", "Хранит данные о состоянии светового прибора")
+
+  Rel(lightController, lightEntity, "Получение состояния светового прибора")
+
+  Rel(lightEntity, dbController, "Получение и изменение состояния из БД")  
+  Rel(dbController, dbLightControl, "Получение и изменение данных в БД")
+
+  Rel(lightController, eventPublication, "Вызов публикации запросов")
+  Rel(eventReading, lightEntity, "Получение состояния светового прибора")
+}
+
+  SystemQueue(eventBus, "Kafka", "Шина данных")
+  Rel(eventPublication, eventBus, "Запросы на получение состояния светового прибора")
+  Rel(eventBus, eventReading, "Получение состояния светового прибора")
+
+@enduml

@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Context>
+
+title C4 Контекстная диаграмма AS IS
+
+Person(customer, "Пользователь", "Использует приложение для управления отоплением.")
+Person_Ext(serviceman, "Сервисный специалист", "Подключает новые устройства к системе.")
+
+System(monolith, "Приложение", "Позволяет управлять отоплением", $type="Java приложение")
+SystemDb(database, "База данных", "Хранит данные о температуре и настройках режима отоплением.", $type="PostgreSQL")
+System(device, "Устройство", "Передает данные о температуре и получает настройки режима отоплением")
+System_Ext(deviceadministration, "Система администрирования", "Используется для подключения новых устройств")
+
+Rel(customer, monolith, "Просматривает температуру и настраивает режим отопления", "HTTP/HTTPS")
+Rel(serviceman, device, "Подключает новые устройства к системе", "Локально")
+Rel(serviceman, deviceadministration, "Подключает новые устройства к системе")
+
+Rel(monolith, device, "Запрашивает данные о температуре", "REST API (JSON)")
+Rel(monolith, device, "Передает настройки режима отопления", "REST API (JSON)")
+Rel(monolith, database, "Сохраняет и извлекает данные", "SQL")
+Rel(deviceadministration, database, "Прописывает новое устройство в БД", "SQL")
+
+@enduml

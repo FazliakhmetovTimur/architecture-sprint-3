@@ -1,0 +1,34 @@
+@startuml
+!include <C4/C4_Component>
+!include <C4/C4_Container>
+
+title C4 Диаграмма компонентов сервиса управления отоплением TO BE
+
+System_Boundary(heatingControl, "Heating Control", "Any", "Сервис управления отоплением"){
+  Component(sensorEntity, "deviceEntity", "Сущность Датчик")
+  Component(heatingDeviceEntity, "heatingDeviceEntity", "Сущность Устройство управления отоплением")
+  Component(sensorController, "sensorController", "Контроллер получения температуры датчика")
+  Component(heatingDeviceController, "heatingDeviceController", "Контроллер устройство управления отоплением")
+  Component(eventPublication, "eventPublication", "Компонент публикации запросов на получение и обновление данных")
+  Component(eventReading, "eventReading", "Компонент подписки в Kafka на топик получения данных")
+  Component(dbController, "dbController", "Слой взаимодействия с БД")
+  ComponentDb(dbHeatingControl, "База данных", "PostgreSQL", "Хранит данные о температуре")
+
+  Rel(sensorController, sensorEntity, "Получение температуры с датчика")
+  Rel(heatingDeviceController, heatingDeviceEntity, "Получение и изменение температуры с отопительного устройства")
+
+  Rel(sensorEntity, dbController, "Получение и изменение температуры из БД")  
+  Rel(heatingDeviceEntity, dbController, "Получение и изменение температуры отопительного устройства")
+  Rel(dbController, dbHeatingControl, "Получение и изменение данных в БД")
+
+  Rel(sensorController, eventPublication, "Вызов публикации запросов")
+  Rel(heatingDeviceController, eventPublication, "Вызов публикации запросов и команд")
+  Rel(eventReading, sensorEntity, "Получение темпетаруты с датчика")
+  Rel(eventReading, heatingDeviceEntity, "Получение температуры отопительного устройства")
+}
+
+  SystemQueue(eventBus, "Kafka", "Шина данных")
+  Rel(eventPublication, eventBus, "Запросы на получение и изменение темпатурного режима")
+  Rel(eventBus, eventReading, "Получение значения темпатурного режима")
+
+@enduml

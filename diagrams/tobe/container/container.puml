@@ -1,0 +1,68 @@
+@startuml
+!include <C4/C4_Container>
+
+title C4 Диаграмма контейнеров TO BE
+
+Person(customer, "Пользователь", "Использует систему управления умным домом.")
+
+System_Boundary(system, "Умный дом") {
+    Container(webApp, "Веб интерфейс", "React/Angular/Vue")
+    Container(mobileApp, "Мобильное приложение", "Android/iOS")
+    Container(gtwUser, "API Gateway", "Kong", "Gateway для взаимодействия с фронтенд приложениями")
+    Container(gtwDevice, "API Gateway for Devices", "Any", "Жлюз/адаптер для взаимодействия с устройствами")
+
+    Container(auth, "User authentification", "Any", "Сервис регистрации и авторизации пользователей")
+    Container(deviceControl, "Device Control", "Any", "Сервис подключения устройств")
+    Container(heatingControl, "Heating Control", "Any", "Сервис управления отоплением")
+    Container(lightControl, "Light Control", "Any", "Сервис управления освещением")
+    Container(gateControl, "Gate Control", "Any", "Сервис управления воротами")
+    Container(camControl, "Cameras Control", "Any", "Сервис управления видеонаблюдением")
+
+    Container(comandsControl, "Comands Control", "Any", "Сервис отправляет запросы/команды на устройства и ожидает подверждения их применения от устройства. Не имеет API. Взаимодействует только через Kafka.") 
+
+    ContainerDb(dbUser, "Пользователи", "PostgreSQL", "Хранные данные о пользователях. В том числе логин и пароль")
+    ContainerDb(dbDeviceControl, "Устройства", "PostgreSQL", "Хранит данные устройств и общий статус (доступен/недоступен/вкл/выкл). Связывает их с пользователями.")
+ 
+    SystemQueue(eventBus, "Kafka", "Kafka", "Шина данных")
+}
+
+Rel(customer, webApp, "Взаимодействует через веб интерфейс")
+Rel(customer, mobileApp, "Взаимодействует через мобильное приложение")
+
+Lay_R(webApp,mobileApp)
+Lay_R(auth,deviceControl)
+Lay_R(deviceControl,heatingControl)
+Lay_R(heatingControl,lightControl)
+Lay_R(lightControl,gateControl)
+Lay_R(gateControl,camControl)
+
+Lay_D(auth,dbUser)
+Lay_D(deviceControl,dbDeviceControl)
+
+Rel(webApp, gtwUser, "Взаимодействует с беком", "HTTPS")
+Rel(mobileApp, gtwUser, "Взаимодействует с беком", "HTTPS")
+
+Rel(gtwUser, auth, "Передача запроса в API авторизации", "grps")
+Rel(gtwUser, deviceControl, "Передача запроса в API подключения устройств", "grps")
+Rel(gtwUser, heatingControl, "Передача запроса в API управления отоплением", "grps")
+Rel(gtwUser, lightControl, "Передача запроса в API управления освещением", "grps")
+Rel(gtwUser, gateControl, "Передача запроса в API управления воротам", "grps")
+Rel(gtwUser, camControl, "Передача запроса в API управления видеонаблюдением", "grps")
+
+Rel(auth, dbUser, "Получение данных о пользователе", "SQL")
+Rel(deviceControl, dbDeviceControl, "Получение и сохранение данных об устройстве", "grps")
+
+Rel(deviceControl, eventBus, "Запросы/команды подключения устройства")
+Rel(heatingControl, eventBus, "Запросы/команды на устройства управления отоплением")
+Rel(lightControl, eventBus, "Запросы/команды на устройства управления освещением")
+Rel(gateControl, eventBus, "Запросы/команды на устройства управления воротами")
+
+Rel(gtwDevice, camControl, "Получение потокового видео", "grps")
+Rel(camControl, webApp, "Передача потокового видео", "web socket")
+Rel(camControl, mobileApp, "Передача потокового видео", "web socket")
+
+Rel(eventBus, comandsControl, "Получение запросов/команд из очереди")
+Rel(comandsControl, gtwDevice, "Отправка запросов/команд и получение ответов")
+Rel(comandsControl, eventBus, "Помещение ответов от устройств в очередь")
+
+@enduml

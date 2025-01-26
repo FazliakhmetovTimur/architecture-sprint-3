@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+
+title C4 Диаграмма компонентов сервиса управления видеонаблюдением TO BE
+
+System_Boundary(camControl, "Сam Control", "Any", "Сервис управления видеонаблюдением"){
+  Component(camEntity, "camEntity", "Сущность Камера")
+  Component(camController, "camController", "Контроллер передачи видео с камеры в веб или мобильное приложение")
+  Component(dbController, "dbController", "Слой взаимодействия с БД")
+  ComponentDb(dbcamControl, "База данных", "PostgreSQL", "Хранит скриншоты и режим работы камеры")
+
+  Rel(camController, camEntity, "Получение скриншотов и режима работы камеры")
+
+  Rel(camEntity, dbController, "Получение скриншотов и режима работы камеры")  
+  Rel(dbController, dbcamControl, "Получение скриншотов и режима работы камеры")
+}
+
+  System(webApp, "Веб интерфейс")
+  System(mobileApp, "Мобильное приложение")
+  System(gtwDevice, "API Gateway for Devices", "Жлюз/адаптер для взаимодействия с устройствами")
+
+  Rel(gtwDevice, camController, "Получение потокового видео", "grps")
+  Rel(camController, webApp, "Передача потокового видео", "web socket")
+  Rel(camController, mobileApp, "Запросы/команды на устойства видеонаблюдения", "web socket")
+
+@enduml
