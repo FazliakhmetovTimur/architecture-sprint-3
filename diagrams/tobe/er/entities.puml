@@ -21,6 +21,13 @@ entity Device {
     status : STRING
 }
 
+entity DeviceOwnership {
+    *user_id : INTEGER
+    *user_id : INTEGER
+    --
+    connectDate : DATETIME
+}
+
 entity DeviceType {
     *id : INTEGER
     --
@@ -80,13 +87,15 @@ entity comand {
     timestamp: DATETIME
 }
 
-User ||--o{ Device : "владеет"
-DeviceType ||--|{ Device : "определяет тип"
+User --o DeviceOwnership : "владеет"
+Device --o DeviceOwnership : "принадлежит"
+DeviceType --* Device : "определяет тип"
 heatingSensor <|-- Device : "тип устройства"
 heatingDevice <|-- Device : "тип устройства"
 lightDevice <|-- Device : "тип устройства"
 gateDevice <|-- Device : "тип устройства"
 camDevice <|-- Device : "тип устройства"
 camDevice o-- camDeviceSreenShots : "содержит скриншоты"
+comand --> Device : "передается на"
 
 @enduml
