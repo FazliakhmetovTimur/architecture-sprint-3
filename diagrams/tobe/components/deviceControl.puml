@@ -1,0 +1,32 @@
+@startuml
+!include <C4/C4_Component>
+!include <C4/C4_Container>
+
+title C4 Диаграмма компонентов сервиса подключения устройств TO BE
+
+System_Boundary(deviceControl, "Device Control", "Any", "Сервис подключения устройств"){
+  Component(deviceEntity, "deviceEntity", "Сущность Устройство")
+  Component(installController, "installController", "Контроллер подключения/отключения устройств")
+  Component(deviceController, "deviceController", "Контроллер получения и обновления статуса устройства")
+  Component(eventPublication, "eventPublication", "Компонент публикации запросов на подключения/отключения и обновления статуса устройства")
+  Component(eventReading, "eventReading", "Компонент подписки в Kafka на топик получения статуса устройства")
+  Component(dbController, "dbController", "Слой взаимодействия с БД")
+  ComponentDb(dbDeviceControl, "База данных", "PostgreSQL", "Хранит данные устройств и общий статус (доступен/недоступен/вкл/выкл). Связывает их с пользователями.")
+
+
+  Rel(installController, deviceEntity, "Создание и подключение")
+  Rel(deviceController, deviceEntity, "Получение и изменение объекта")
+
+  Rel(deviceEntity, dbController, "Получение и изменение данных из БД")  
+  Rel(dbController, dbDeviceControl, "Получение и изменение данных из БД")
+
+  Rel(installController, eventPublication, "Вызов публикации события")
+  Rel(deviceController, eventPublication, "Вызов публикации события")
+  Rel(eventReading, deviceController, "Получение статуса устройства")
+}
+
+  SystemQueue(eventBus, "Kafka", "Шина данных")
+  Rel(eventPublication, eventBus, "Запросы на подключения/отключения и обновления статуса устройства")
+  Rel(eventBus, eventReading, "Получение статуса устройства")
+
+@enduml

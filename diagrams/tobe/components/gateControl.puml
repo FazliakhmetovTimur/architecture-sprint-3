@@ -1,0 +1,28 @@
+@startuml
+!include <C4/C4_Component>
+!include <C4/C4_Container>
+
+title C4 Диаграмма компонентов сервиса управления воротами TO BE
+
+System_Boundary(gateControl, "Gate Control", "Any", "Сервис управления воротами"){
+  Component(gateEntity, "gateEntity", "Сущность Световой прибор")
+  Component(gateController, "gateController", "Контроллер получения состояния ворот (открыто/закрыто)")
+  Component(eventPublication, "eventPublication", "Компонент публикации запросов на получение и обновление данных")
+  Component(eventReading, "eventReading", "Компонент подписки в Kafka на топик получения данных")
+  Component(dbController, "dbController", "Слой взаимодействия с БД")
+  ComponentDb(dbgateControl, "База данных", "PostgreSQL", "Хранит данные о состоянии ворот")
+
+  Rel(gateController, gateEntity, "Получение и изменение состояния ворот")
+
+  Rel(gateEntity, dbController, "Получение и изменение состояния ворот из БД")  
+  Rel(dbController, dbgateControl, "Получение и изменение данных в БД")
+
+  Rel(gateController, eventPublication, "Вызов публикации запросов")
+  Rel(eventReading, gateEntity, "Получение состояния ворот")
+}
+
+  SystemQueue(eventBus, "Kafka", "Шина данных")
+  Rel(eventPublication, eventBus, "Запросы на получение и изменение состояния ворот")
+  Rel(eventBus, eventReading, "Получение состояния ворот")
+
+@enduml
